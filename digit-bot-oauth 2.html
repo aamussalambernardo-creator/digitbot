@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digit Bot Pro</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;color:#e2e8f0;background:#0f172a;font-size:14px;min-height:100vh}
+.wrap{padding:1rem;max-width:1100px;margin:0 auto}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #1e293b}
+.hl{display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;background:#0ea5e9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.title{font-size:18px;font-weight:600;color:#f1f5f9}
+.sub{font-size:11px;color:#64748b;margin-top:1px}
+.pill{display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid #1e293b;background:#1e293b;color:#94a3b8}
+.dot{width:7px;height:7px;border-radius:50%;background:#475569}
+.dot.ok{background:#22c55e;animation:pulse 2s infinite}
+.dot.run{background:#38bdf8;animation:pulse 0.7s infinite}
+.dot.err{background:#ef4444}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:1.25rem}
+.met{background:#1e293b;border-radius:10px;padding:10px 12px}
+.ml{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px}
+.mv{font-size:18px;font-weight:600;color:#f1f5f9}
+.mv.up{color:#22c55e}.mv.dn{color:#ef4444}
+.ms{font-size:10px;color:#64748b;margin-top:1px}
+.panels{display:grid;grid-template-columns:280px 1fr;gap:10px}
+@media(max-width:700px){.panels{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}}
+.panel{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px}
+.pt{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px}
+.fld{margin-bottom:11px}
+.fld label{display:block;font-size:11px;color:#94a3b8;margin-bottom:4px}
+.fld select,.fld input{width:100%;padding:7px 9px;font-size:13px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0}
+.fld2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.btn-go{padding:10px;font-size:13px;font-weight:600;border:none;border-radius:8px;background:#22c55e;color:#fff;cursor:pointer}
+.btn-go:disabled{background:#334155;color:#64748b;cursor:not-allowed}
+.btn-st{padding:10px;font-size:13px;font-weight:600;border:1px solid #ef4444;border-radius:8px;background:transparent;color:#ef4444;cursor:pointer}
+.btn-st:disabled{border-color:#334155;color:#64748b;cursor:not-allowed}
+.digit-last{display:flex;align-items:center;justify-content:space-around;padding:10px;background:#0f172a;border-radius:10px;margin-bottom:10px}
+.dl-label{font-size:10px;color:#64748b;margin-bottom:2px;text-align:center}
+.dl-digit{font-size:32px;font-weight:700;color:#38bdf8;font-family:monospace;text-align:center}
+.dl-price{font-size:12px;color:#94a3b8;font-family:monospace;text-align:center}
+.digit-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-bottom:8px;align-items:end;height:80px}
+.dbar-wrap{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.dbar{width:100%;border-radius:3px 3px 0 0;min-height:3px;transition:height 0.3s}
+.dbar.hot{background:#ef4444}.dbar.cold{background:#22c55e}.dbar.normal{background:#334155}.dbar.last{outline:2px solid #38bdf8;outline-offset:1px}
+.dlbl{font-size:10px;color:#64748b;margin-top:3px;font-weight:600;text-align:center}
+.dpct{font-size:8px;color:#475569;text-align:center}
+.tdig{width:26px;height:26px;border-radius:6px;border:1px solid #334155;background:#0f172a;font-size:12px;font-weight:600;cursor:pointer;color:#94a3b8}
+.tdig.selected{background:#22c55e;color:#fff;border-color:#22c55e}
+.target-row{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:10px}
+.log-box{font-family:monospace;font-size:11px;line-height:1.6;overflow-y:auto;max-height:180px;background:#0f172a;border-radius:8px;padding:6px}
+.le{display:flex;gap:6px;padding:2px 0;border-bottom:1px solid #1e293b;align-items:flex-start}
+.lt{color:#475569;white-space:nowrap;min-width:64px;font-size:10px}
+.lb{padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600;white-space:nowrap;margin-top:1px}
+.lb.i{background:#1e3a5f;color:#7dd3fc}.lb.b{background:#14532d;color:#86efac}.lb.w{background:#14532d;color:#86efac}.lb.l{background:#7f1d1d;color:#fca5a5}.lb.x{background:#78350f;color:#fcd34d}
+.lm{color:#e2e8f0;font-size:11px}
+.ttable{width:100%;border-collapse:collapse;font-size:11px}
+.ttable th{font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;padding:5px;border-bottom:1px solid #334155;text-align:left}
+.ttable td{padding:5px;border-bottom:1px solid #1e293b;color:#e2e8f0}
+.ttable tr:last-child td{border-bottom:none}
+.pos{color:#22c55e;font-weight:600}.neg{color:#ef4444;font-weight:600}
+.streak-row{display:flex;gap:3px;flex-wrap:wrap;margin-top:8px}
+.sc{width:12px;height:12px;border-radius:2px}
+.sc.w{background:#22c55e}.sc.l{background:#ef4444}.sc.e{background:#1e293b;border:1px solid #334155}
+.legend{display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="header">
+  <div class="hl">
+    <div class="logo">🔢</div>
+    <div>
+      <div class="title">Digit Bot Pro</div>
+      <div class="sub">Volatility — Differs / Match / Over / Under</div>
+    </div>
+  </div>
+  <div class="pill">
+    <div class="dot" id="dot"></div>
+    <span id="stxt">Desligado</span>
+  </div>
+</div>
+
+<div class="login-box" id="login-box" style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:2rem;text-align:center;margin-bottom:1.5rem">
+  <div style="font-size:20px;font-weight:600;color:#f1f5f9;margin-bottom:8px">🔐 Login com Deriv</div>
+  <div style="font-size:13px;color:#64748b;margin-bottom:1.5rem">Clica para entrar com a tua conta Deriv (demo ou real).</div>
+  <a id="btn-oauth" href="#" style="display:inline-flex;align-items:center;gap:10px;padding:14px 32px;font-size:15px;font-weight:600;border:none;border-radius:10px;background:#ff444f;color:#fff;cursor:pointer;text-decoration:none">🚀 Entrar com Deriv</a>
+</div>
+
+<div class="metrics" id="metrics-block" style="display:none">
+  <div class="met"><div class="ml">Saldo</div><div class="mv" id="bal">—</div><div class="ms" id="acct-lbl">—</div></div>
+  <div class="met"><div class="ml">P&L</div><div class="mv" id="pnl">$0.00</div><div class="ms" id="ntrd">0 trades</div></div>
+  <div class="met"><div class="ml">Win Rate</div><div class="mv" id="wr">—%</div><div class="ms" id="wrd">—/—</div></div>
+  <div class="met"><div class="ml">Stake atual</div><div class="mv" id="cur-stake">—</div><div class="ms">próximo</div></div>
+  <div class="met"><div class="ml">Streak</div><div class="mv" id="streak-v">—</div><div class="ms" id="streak-l">—</div></div>
+</div>
+
+<div class="panels" id="panels-block" style="display:none">
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <div class="panel">
+      <div class="pt">⚙️ Configuração</div>
+      <div class="fld">
+        <label>Ativo</label>
+        <select id="sym" onchange="resubTicks()">
+          <option value="R_100">Volatility 100</option>
+          <option value="1HZ100V">Volatility 100 (1s)</option>
+          <option value="R_75">Volatility 75</option>
+          <option value="1HZ75V">Volatility 75 (1s)</option>
+          <option value="stpRNG">Step Index</option>
+          <option value="R_10">Volatility 10</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Tipo de contrato</label>
+        <select id="contract-type" onchange="onContractChange()">
+          <option value="DIGITDIFF">Differs (recomendado)</option>
+          <option value="DIGITMATCH">Match (10x payout)</option>
+          <option value="DIGITOVER">Over</option>
+          <option value="DIGITUNDER">Under</option>
+        </select>
+      </div>
+      <div class="fld" id="digit-mode-fld">
+        <label>Seleção do dígito</label>
+        <select id="digit-mode" onchange="onModeChange()">
+          <option value="auto-cold">Auto — menos frequente</option>
+          <option value="auto-hot">Auto — mais frequente</option>
+          <option value="manual">Manual</option>
+        </select>
+      </div>
+      <div class="fld" id="manual-digit-fld" style="display:none;">
+        <label>Dígito alvo</label>
+        <div class="target-row" id="digit-btns"></div>
+      </div>
+      <div class="fld2">
+        <div class="fld" style="margin:0"><label>Stake ($)</label><input type="number" id="stake" value="0.50" min="0.35" step="0.05"/></div>
+        <div class="fld" style="margin:0"><label>Multiplicador</label><input type="number" id="mult" value="2.2" min="1.1" max="5" step="0.1"/></div>
+      </div>
+      <div class="fld2" style="margin-top:10px;">
+        <div class="fld" style="margin:0"><label>Máx losses</label><input type="number" id="max-loss" value="5" min="1" max="15"/></div>
+        <div class="fld" style="margin:0"><label>Stop Loss ($)</label><input type="number" id="sl" value="10" min="1"/></div>
+      </div>
+      <div class="fld" style="margin-top:10px;">
+        <label>Take Profit ($)</label>
+        <input type="number" id="tp" value="20" min="1"/>
+      </div>
+      <div class="btns">
+        <button class="btn-go" id="btn-go" onclick="startBot()" disabled>▶ Iniciar</button>
+        <button class="btn-st" id="btn-stop" onclick="stopBot()" disabled>■ Parar</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <div class="panel">
+      <div class="pt">📊 Frequência de Dígitos</div>
+      <div class="digit-last">
+        <div><div class="dl-label">Último dígito</div><div class="dl-digit" id="last-digit">—</div></div>
+        <div><div class="dl-label">Preço</div><div class="dl-price" id="last-price">—</div></div>
+        <div><div class="dl-label">Dígito alvo</div><div class="dl-digit" id="target-digit" style="color:#f59e0b">—</div></div>
+        <div><div class="dl-label">Ticks</div><div class="dl-price" id="tick-count">0</div></div>
+      </div>
+      <div class="digit-grid" id="digit-grid"></div>
+      <div class="legend"><span>🔴 Mais frequente</span><span>🔵 Último</span><span>🟢 Menos frequente</span></div>
+    </div>
+    <div class="panel">
+      <div class="pt">📋 Log</div>
+      <div class="log-box" id="log"></div>
+      <div class="streak-row" id="streak-dots"></div>
+    </div>
+    <div class="panel">
+      <div class="pt">📜 Histórico</div>
+      <table class="ttable">
+        <thead><tr><th>Hora</th><th>Contrato</th><th>Previsto</th><th>Stake</th><th>Result</th><th>Real</th><th>P&L</th></tr></thead>
+        <tbody id="tbody"><tr><td colspan="7" style="color:#64748b;text-align:center;padding:16px;">Sem trades ainda</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const APP_ID = 19111;
+const REDIRECT = window.location.origin + window.location.pathname;
+
+document.getElementById('btn-oauth').href = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=PT&redirect_uri=${encodeURIComponent(REDIRECT)}`;
+
+function getTokenFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  const accounts = [];
+  let i = 1;
+  while (params.get('token' + i)) {
+    accounts.push({ token: params.get('token'+i), acct: params.get('acct'+i), cur: params.get('cur'+i) });
+    i++;
+  }
+  return accounts;
+}
+
+let ws, connected=false, running=false, waiting=false;
+let bal=0, pnl=0, wins=0, losses=0, trades=0, rid=1;
+let digitCounts=new Array(10).fill(0), totalTicks=0;
+let baseStake=0.5, curStake=0.5, curStreak=0, tradeHistory=[];
+let manualDigit=5, lastDigit=-1, lastTargetDigit=5;
+let cooldown=false, cooldownTimer=null;
+
+function initGrid(){
+  const g=document.getElementById('digit-grid');
+  g.innerHTML='';
+  for(let i=0;i<10;i++){
+    const w=document.createElement('div');
+    w.className='dbar-wrap';
+    w.innerHTML=`<div class="dbar normal" id="bar-${i}" style="height:3px"></div><div class="dlbl">${i}</div><div class="dpct" id="pct-${i}">0%</div>`;
+    g.appendChild(w);
+  }
+  const sd=document.getElementById('streak-dots');
+  sd.innerHTML='';
+  for(let i=0;i<20;i++){const d=document.createElement('div');d.className='sc e';sd.appendChild(d);}
+}
+
+function updateGrid(){
+  const max=Math.max(...digitCounts,1);
+  const hotIdx=digitCounts.indexOf(Math.max(...digitCounts));
+  const coldIdx=digitCounts.indexOf(Math.min(...digitCounts));
+  for(let i=0;i<10;i++){
+    const bar=document.getElementById('bar-'+i);
+    const pct=document.getElementById('pct-'+i);
+    const h=Math.max(3,Math.round((digitCounts[i]/max)*70));
+    bar.style.height=h+'px';
+    let cls='normal';
+    if(i===hotIdx)cls='hot';
+    else if(i===coldIdx)cls='cold';
+    bar.className='dbar '+cls+(i===lastDigit?' last':'');
+    const p=totalTicks>0?((digitCounts[i]/totalTicks)*100).toFixed(1):0;
+    pct.textContent=p+'%';
+  }
+}
+
+function buildDigitBtns(from,to){
+  const c=document.getElementById('digit-btns');
+  c.innerHTML='';
+  for(let i=from;i<=to;i++){
+    const b=document.createElement('button');
+    b.className='tdig'+(i===manualDigit?' selected':'');
+    b.textContent=i;
+    b.onclick=()=>{manualDigit=i;buildDigitBtns(from,to);};
+    c.appendChild(b);
+  }
+}
+
+function onContractChange(){
+  const ct=document.getElementById('contract-type').value;
+  const mf=document.getElementById('manual-digit-fld');
+  const dmf=document.getElementById('digit-mode-fld');
+  if(ct==='DIGITOVER'){dmf.style.display='none';mf.style.display='block';buildDigitBtns(0,8);manualDigit=4;}
+  else if(ct==='DIGITUNDER'){dmf.style.display='none';mf.style.display='block';buildDigitBtns(1,9);manualDigit=5;}
+  else{dmf.style.display='block';onModeChange();}
+}
+
+function onModeChange(){
+  const mode=document.getElementById('digit-mode').value;
+  document.getElementById('manual-digit-fld').style.display=mode==='manual'?'block':'none';
+  if(mode==='manual')buildDigitBtns(0,9);
+}
+
+function getTargetDigit(){
+  const ct=document.getElementById('contract-type').value;
+  if(ct==='DIGITOVER'||ct==='DIGITUNDER')return manualDigit;
+  const mode=document.getElementById('digit-mode').value;
+  if(mode==='manual')return manualDigit;
+  if(mode==='auto-cold')return digitCounts.indexOf(Math.min(...digitCounts));
+  if(mode==='auto-hot')return digitCounts.indexOf(Math.max(...digitCounts));
+  return manualDigit;
+}
+
+function log(t,m){
+  const box=document.getElementById('log');
+  const lmap={i:'INFO',b:'TRADE',w:'WIN',l:'LOSS',x:'AVISO'};
+  const e=document.createElement('div');
+  e.className='le';
+  e.innerHTML=`<span class="lt">${new Date().toTimeString().slice(0,8)}</span><span class="lb ${t}">${lmap[t]||t}</span><span class="lm">${m}</span>`;
+  box.appendChild(e);
+  box.scrollTop=box.scrollHeight;
+}
+
+function setStatus(s,txt){document.getElementById('dot').className='dot'+(s?' '+s:'');document.getElementById('stxt').textContent=txt;}
+
+function calcNextStake(won){
+  const mult=parseFloat(document.getElementById('mult').value)||2.2;
+  const maxL=parseInt(document.getElementById('max-loss').value)||5;
+  if(won){curStake=baseStake;curStreak=curStreak>0?curStreak+1:1;}
+  else{
+    curStreak=curStreak<0?curStreak-1:-1;
+    const cl=Math.abs(curStreak);
+    if(cl>=maxL){
+      log('x','Máx losses — reset + pausa 30s');
+      curStake=baseStake;curStreak=0;cooldown=true;
+      if(cooldownTimer)clearTimeout(cooldownTimer);
+      cooldownTimer=setTimeout(()=>{cooldown=false;log('i','Pausa terminada.');},30000);
+    } else {
+      curStake=parseFloat((baseStake*Math.pow(mult,cl)).toFixed(2));
+    }
+  }
+  document.getElementById('streak-v').textContent=curStreak===0?'—':(curStreak>0?'+'+curStreak:curStreak);
+  document.getElementById('streak-l').textContent=curStreak>0?'vitórias':curStreak<0?'losses':'—';
+  document.getElementById('cur-stake').textContent='$'+curStake.toFixed(2);
+}
+
+function updateDots(r){
+  tradeHistory.push(r);
+  if(tradeHistory.length>20)tradeHistory.shift();
+  const dots=document.getElementById('streak-dots').children;
+  for(let i=0;i<20;i++){
+    if(i<tradeHistory.length)dots[i].className='sc '+(tradeHistory[i]==='w'?'w':'l');
+    else dots[i].className='sc e';
+  }
+}
+
+function updateMet(){
+  document.getElementById('bal').textContent=connected?'$'+bal.toFixed(2):'—';
+  const pe=document.getElementById('pnl');
+  pe.textContent=(pnl>=0?'+':'')+' $'+Math.abs(pnl).toFixed(2);
+  pe.className='mv '+(pnl>=0?'up':'dn');
+  document.getElementById('ntrd').textContent=trades+' trades';
+  const tot=wins+losses;
+  document.getElementById('wr').textContent=tot>0?Math.round(wins/tot*100)+'%':'—%';
+  document.getElementById('wrd').textContent=tot>0?wins+'W/'+losses+'L':'—/—';
+  document.getElementById('cur-stake').textContent='$'+curStake.toFixed(2);
+}
+
+function connect(token){
+  log('i','A ligar com App ID '+APP_ID+'...');
+  if(ws){try{ws.close();}catch(e){}}
+  ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id='+APP_ID);
+  ws.onerror=()=>{ log('x','Erro WebSocket.'); setStatus('err','Erro'); };
+  ws.onclose=(e)=>{ if(connected){log('x','Desligado ('+e.code+')');connected=false;setStatus('','Desligado');} };
+  ws.onopen=()=>{
+    log('i','Ligado. A autenticar...');
+    ws.send(JSON.stringify({authorize:token,req_id:rid++}));
+  };
+  ws.onmessage=(ev)=>{
+    const d=JSON.parse(ev.data);
+    if(d.msg_type==='authorize'){
+      if(d.error){
+        log('x','Auth falhou: '+d.error.message);
+        setStatus('err','Token inválido');
+        return;
+      }
+      connected=true; bal=d.authorize.balance;
+      document.getElementById('acct-lbl').textContent=(d.authorize.is_virtual?'DEMO':'REAL')+' '+d.authorize.loginid;
+      setStatus('ok','Ligado ✓');
+      document.getElementById('btn-go').disabled=false;
+      log('i','✅ Ligado: '+d.authorize.loginid+' | $'+bal.toFixed(2)+' | '+(d.authorize.is_virtual?'DEMO':'REAL'));
+      subTicks();
+      ws.send(JSON.stringify({balance:1,subscribe:1,req_id:rid++}));
+      updateMet();
+    }
+    if(d.msg_type==='tick'){
+      const price=d.tick.quote;
+      const priceStr=price.toString();
+      lastDigit=parseInt(priceStr[priceStr.length-1]);
+      digitCounts[lastDigit]++;totalTicks++;
+      document.getElementById('last-digit').textContent=lastDigit;
+      document.getElementById('last-price').textContent=price.toFixed?price.toFixed(4):price;
+      document.getElementById('tick-count').textContent=totalTicks;
+      const tgt=getTargetDigit();
+      document.getElementById('target-digit').textContent=tgt;
+      updateGrid();
+      if(running&&!waiting&&!cooldown&&totalTicks>=20){lastTargetDigit=tgt;placeTrade(tgt);}
+      updateMet();
+    }
+    if(d.msg_type==='balance'){bal=d.balance.balance;updateMet();}
+    if(d.msg_type==='buy'){
+      if(d.error){log('x','Erro: '+d.error.message);waiting=false;return;}
+      log('b','Aberto #'+d.buy.contract_id+' $'+d.buy.buy_price.toFixed(2));
+    }
+    if(d.msg_type==='proposal_open_contract'){
+      const c=d.proposal_open_contract;
+      if(c.is_sold||c.status==='won'||c.status==='lost'){
+        waiting=false;
+        const p=parseFloat(c.profit),st=parseFloat(c.buy_price);
+        const won=p>=0;
+        pnl+=p;trades++;
+        const exitStr=(c.exit_tick_display_value||'?').toString();
+        const realDigit=exitStr[exitStr.length-1]||'?';
+        if(won){wins++;log('w','WIN +$'+p.toFixed(2)+' dígito:'+realDigit);}
+        else{losses++;log('l','LOSS $'+p.toFixed(2)+' dígito:'+realDigit);}
+        updateDots(won?'w':'l');
+        calcNextStake(won);
+        addRow(document.getElementById('contract-type').value.replace('DIGIT',''),lastTargetDigit,st,p,realDigit);
+        checkLimits();updateMet();
+      }
+    }
+  };
+}
+
+function subTicks(){
+  const sym=document.getElementById('sym').value;
+  digitCounts=new Array(10).fill(0);totalTicks=0;
+  ws.send(JSON.stringify({ticks:sym,subscribe:1,req_id:rid++}));
+  log('i','Subscrito: '+sym);
+}
+function resubTicks(){if(!connected)return;ws.send(JSON.stringify({forget_all:'ticks',req_id:rid++}));setTimeout(subTicks,300);}
+
+function placeTrade(digit){
+  if(!connected||waiting)return;
+  const ct=document.getElementById('contract-type').value;
+  const sym=document.getElementById('sym').value;
+  waiting=true;
+  ws.send(JSON.stringify({
+    buy:1,price:curStake,
+    parameters:{contract_type:ct,symbol:sym,duration:1,duration_unit:'t',basis:'stake',amount:curStake,currency:'USD',barrier:digit.toString()},
+    subscribe:1,req_id:rid++
+  }));
+  log('b',ct.replace('DIGIT','')+' dígito:'+digit+' $'+curStake.toFixed(2));
+}
+
+function checkLimits(){
+  const sl=parseFloat(document.getElementById('sl').value);
+  const tp=parseFloat(document.getElementById('tp').value);
+  if(pnl<=-sl){log('x','Stop Loss! $'+pnl.toFixed(2));stopBot();}
+  else if(pnl>=tp){log('w','Take Profit! +$'+pnl.toFixed(2));stopBot();}
+}
+
+function startBot(){
+  if(!connected)return;
+  baseStake=parseFloat(document.getElementById('stake').value)||0.5;
+  curStake=baseStake;curStreak=0;
+  running=true;cooldown=false;
+  setStatus('run','Bot Ativo');
+  document.getElementById('btn-go').disabled=true;
+  document.getElementById('btn-stop').disabled=false;
+  log('i','Bot iniciado | '+document.getElementById('contract-type').value+' | ×'+document.getElementById('mult').value);
+  resubTicks();
+}
+
+function stopBot(){
+  running=false;waiting=false;cooldown=false;
+  if(cooldownTimer){clearTimeout(cooldownTimer);cooldownTimer=null;}
+  setStatus('ok','Ligado ✓');
+  document.getElementById('btn-go').disabled=false;
+  document.getElementById('btn-stop').disabled=false;
+  log('i','Bot parado | P&L: '+(pnl>=0?'+':'')+' $'+pnl.toFixed(2)+' em '+trades+' trades');
+}
+
+function addRow(tipo,digit,st,p,real){
+  const tb=document.getElementById('tbody');
+  if(tb.children.length===1&&tb.children[0].children.length===1)tb.innerHTML='';
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${new Date().toTimeString().slice(0,5)}</td><td>${tipo}</td><td style="font-family:monospace;font-weight:600">${digit}</td><td>$${st.toFixed(2)}</td><td>${p>=0?'✓ WIN':'✗ LOSS'}</td><td style="font-family:monospace">${real}</td><td class="${p>=0?'pos':'neg'}">${p>=0?'+':''}$${p.toFixed(2)}</td>`;
+  tb.insertBefore(tr,tb.firstChild);
+  if(tb.children.length>15)tb.removeChild(tb.lastChild);
+}
+
+initGrid();
+onContractChange();
+
+const oauthAccounts = getTokenFromURL();
+if(oauthAccounts.length > 0){
+  document.getElementById('login-box').style.display='none';
+  document.getElementById('metrics-block').style.display='grid';
+  document.getElementById('panels-block').style.display='grid';
+  connect(oauthAccounts[0].token);
+  window.history.replaceState({},document.title,window.location.pathname);
+}
+</script>
+</body>
+</html>
